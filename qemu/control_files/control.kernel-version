@@ -1,0 +1,194 @@
+AUTHOR = """
+ypu@redhat.com (Yiqiao Pu)
+"""
+TIME = 'MEDIUM'
+NAME = 'QEMU (KVM) Test - Host autoconfig'
+TEST_TYPE = 'client'
+TEST_CLASS = 'Virtualization'
+TEST_CATEGORY = 'Functional'
+
+DOC = """
+Executes the QEMU (accelerated via KVM) test framework on a given host,
+adapting the tests executed to the host machine.
+
+Online docs: https://github.com/autotest/virt-test/wiki
+"""
+
+import sys, os, logging, re, commands, inspect, shutil
+from distutils import version
+
+virt_test_dir = os.path.join(os.environ['AUTODIR'],'tests/virt')
+sys.path.insert(0, virt_test_dir)
+
+from virttest import utils_misc, cartesian_config, data_dir, bootstrap
+from autotest.client.shared import logging_manager
+os.environ['LANG'] = 'en_US.UTF-8'
+cur_file = inspect.getfile(inspect.currentframe())
+qemu_test_dir = "/".join(cur_file.split("/")[:-2])
+
+
+def update_config(verbose=None):
+    if verbose:
+        logging_manager.configure_logging(utils_misc.VirtLoggingConfig(),
+                                          verbose=verbose)
+    # the file structure are changed, so we comment out
+    # the type select code and directly use qemu.
+    # cur_file = inspect.getfile(inspect.currentframe())
+    # t_type = os.path.basename(os.path.dirname(cur_file))
+    t_type = "qemu"
+    cfg_folder = os.path.join(qemu_test_dir, "cfg")
+    shared_dir = os.path.join(data_dir.get_root_dir(), "shared")
+    bootstrap.create_config_files(qemu_test_dir, shared_dir,
+                                  interactive=False,
+                                  force_update=True)
+    bootstrap.create_subtests_cfg(t_type)
+    bootstrap.create_guest_os_cfg(t_type)
+    backend_cfg = test_dir = os.path.join(data_dir.get_root_dir(), "backends",
+                                          t_type, "cfg")
+    for src in os.listdir(backend_cfg):
+        src = os.path.join(backend_cfg, src)
+        shutil.copy(src, cfg_folder)
+
+
+def package_check(dict_test, verbose=False):
+    """
+    Check if the package request in case installed in host.
+
+    @dict_test: dict for test case
+    @verbose: print out the debug messages or not
+    @return: Boolean value for have the packages or not
+    """
+    failed_message = ""
+    for package in dict_test.get("required_packages", "").split():
+        package_check_cmd = (dict_test.get("package_check_cmd_%s" % package)
+                             or dict_test.get("package_check_cmd"))
+        package_check_cmd = re.sub("PACKNAME", package, package_check_cmd)
+        s, o = commands.getstatusoutput(package_check_cmd)
+        if s != 0:
+            failed_message += "%s not installed.\n" % package
+            continue
+
+        if dict_test.get("requires_%s" % package):
+            tmp_str = (dict_test.get("package_version_pattern_%s" % package)
+                       or dict_test.get("package_version_pattern"))
+            version_pattern = re.sub("PACKNAME", package, tmp_str)
+            packge_version = re.findall(version_pattern, o)
+            if packge_version:
+                packge_version = packge_version[0].strip()
+            else:
+                failed_message += "Can not get version info."
+                failed_message += " Please check your pattern and command."
+                continue
+
+            package_requires = eval(dict_test.get("requires_%s" % package))
+            if isinstance(package_requires, list):
+                package_requires = (package_requires,)
+            for requires in package_requires:
+                pass_flag = False
+                for require in requires:
+                    op = re.findall("[>=<!]+", require)[0]
+                    ver = re.sub(op, "", require)
+                    compare_str = ("version.LooseVersion('%s') " %
+                                   packge_version)
+                    compare_str += "%s " % op
+                    compare_str += ("version.LooseVersion('%s')" %
+                                    ver.strip())
+                    if verbose:
+                        print compare_str
+                    if not eval(compare_str):
+                        break
+                else:
+                    pass_flag = True
+
+            if not pass_flag:
+                failed_message += "%s in system is" % package
+                failed_message += " not fit the requires for test.\n"
+                failed_message += "require is: %s\n" % str(package_requires)
+                failed_message += "system is: %s\n" % packge_version
+
+    if failed_message:
+        if verbose:
+            print failed_message
+        return False
+
+    return True
+
+
+def create_host_kernel_cfg(rootdir, guest_file, host_name, base_cfg):
+    guest_file = open(guest_file, 'w')
+    base_file = 0
+    if base_cfg:
+        try:
+            base_file = open(base_cfg, 'r')
+            cfg = base_file.read()
+        finally:
+            if base_file:
+                base_file.close()
+        if cfg:
+            guest_file.write(cfg)
+
+    full_path = rootdir
+    number_variants = 0
+    for path in host_name.split("."):
+        number_variants += 1
+        guest_file.write("%svariants:\n" % (8 * (number_variants - 1) * " "))
+        tmp_path = os.path.join(full_path, path)
+        if os.path.isdir(tmp_path):
+            full_path = os.path.join(full_path, path)
+        if os.path.isfile("%s.cfg" % tmp_path):
+            base_cfg_path = "%s.cfg" % tmp_path
+            base_file = open(base_cfg_path, 'r')
+            for line in base_file.readlines():
+                txt = "%s%s" % (((8 * (number_variants - 1) + 4) * " "), line)
+                guest_file.write(txt)
+    guest_file.close()
+
+
+update_config()
+parser_host = cartesian_config.Parser()
+host_check_cfg = os.path.join(qemu_test_dir, "cfg/host-kernel",
+                              "host-kernel-check.cfg")
+parser_host.parse_file(host_check_cfg)
+
+host_kernel_dict = parser_host.get_dicts()
+
+parser = cartesian_config.Parser()
+
+for host_dict in host_kernel_dict:
+    verbose = host_dict.get("host_check_verbose", "no") == "yes"
+    host_kernel_ver_str = host_dict.get("host_kernel_ver_str")
+    if host_dict.get("pre_check_cmd"):
+        s, o = commands.getstatusoutput(host_dict.get("pre_check_cmd"))
+        if s != 0:
+            continue
+    if package_check(host_dict, verbose=verbose):
+        host_name = host_kernel_ver_str
+        break
+
+host_kernel_dir = os.path.join(qemu_test_dir, "cfg", "host-kernel")
+host_base_cfg = os.path.join(qemu_test_dir, "cfg", "host-kernel-base.cfg")
+target_cfg = os.path.join(qemu_test_dir, "cfg", "host-kernel.cfg")
+create_host_kernel_cfg(host_kernel_dir, target_cfg, host_name, host_base_cfg)
+
+parser.parse_file(os.path.join(qemu_test_dir, "cfg", "tests-example.cfg"))
+
+filter_str = ""
+dryrun = False
+for dict_test in parser.get_dicts():
+    if dict_test.get("dryrun") == "yes":
+        dryrun = True
+    verbose = dict_test.get("host_check_verbose", "no") == "yes"
+    if (dict_test.get("required_packages") and
+        not package_check(dict_test, verbose=verbose)):
+        filter_str += "no %s\n" % dict_test['name']
+        msg = "Skip case '%s' due to " % dict_test['name']
+        msg += "package %s missing." % dict_test.get("required_packages")
+        logging.warning(msg)
+
+parser.parse_string(filter_str)
+
+if dryrun:
+    for count, dic in enumerate(parser.get_dicts()):
+        print "dict %4d:  %s" % (count + 1, dic["shortname"])
+else:
+    utils_misc.run_tests(parser, job)

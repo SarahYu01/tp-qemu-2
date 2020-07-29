@@ -1,0 +1,125 @@
+---
+- name: deploy kar on L1 guest
+  hosts: all
+  gather_facts: false
+  vars:
+    kar_repo: "{{kar_repo}}"
+    kar_local: /root/kar
+    root_ca_url: "{{cert_url}}"
+    ansible_ssh_pass: "{{guest_password}}"
+    setup_bridge_sh: "{{setup_br_sh}}"
+    bs_options: "{{bootstrap_options}}"
+    host_log_dir: "{{host_log_files_dir}}"
+    cmd_line: "{{command_line}}"
+    acc_cancel: "{{accept_cancel}}"
+
+  tasks:
+
+    - name: Configure swith
+      shell:
+        cmd: /usr/bin/bash '{{setup_bridge_sh}}'
+        creates: /etc/sysconfig/network-scripts/ifcfg-switch
+
+    - name: Install git
+      package:
+        name:
+          - git
+          - openssl
+        state: present
+
+    - name: Download cert
+      get_url:
+        url: '{{root_ca_url}}'
+        dest: /etc/pki/ca-trust/source/anchors/RH-IT-Root-CA.crt
+        mode: '0644'
+      register: dnld_cert_output
+
+    - name: Update certificate
+      shell: |
+        /usr/bin/update-ca-trust enable
+        /usr/bin/update-ca-trust extract
+      when: dnld_cert_output.changed
+
+    - name: Check kar folder exists
+      stat:
+         path: '{{kar_local}}'
+      register: kar_folder
+
+    - block:
+        - name: Clone kar
+          git:
+            repo: '{{kar_repo}}'
+            dest: '{{kar_local}}'
+          when: not kar_folder.stat.exists
+
+        - name: Run Bootstrap script
+          command: ./Bootstrap.sh {{bs_options}}
+          args:
+            chdir: '{{kar_local}}'
+          when: not kar_folder.stat.exists
+          register: bootstrap_result
+      rescue:
+         - name: Remove kar folder when bootstrap failed
+           file:
+             path: '{{kar_local}}'
+             state: absent
+         - name: Clean env when bootstrap failed 
+           pip:
+             name: aexpect, avocado-framework, avocado-framework-plugin-vt, avocado-framework-plugin-result-html
+             state: absent
+         - fail:
+             msg: "bootstrap script failed"
+
+    - name: Run case
+      shell:
+        cmd: '{{cmd_line}}'
+        chdir: '{{kar_local}}'
+      register: run_case_result
+      ignore_errors: True
+
+    - name: Get log dir
+      shell:
+        cmd: python3  -c 'from avocado.core import data_dir; print(data_dir.get_logs_dir())'
+      register: guest_log_dir
+      failed_when: guest_log_dir.stdout == ""
+
+    - debug:
+        msg: "Log dir is created"
+      when: guest_log_dir.stdout != ""
+
+    - name: Get results.json file from guest vm
+      slurp:
+        src: '{{ guest_log_dir.stdout}}/latest/results.json'
+      register: results_json
+
+    - set_fact:
+        results_json: "{{ results_json.content|b64decode|from_json }}"
+
+    - name: Compress log directory to log.bz2
+      archive:
+        path: '{{guest_log_dir.stdout}}/latest/'
+        dest: '{{guest_log_dir.stdout}}/latest/log.bz2'
+        format: bz2
+
+    - name: Copy log archive to host
+      fetch:
+        src: '{{guest_log_dir.stdout}}/latest/log.bz2'
+        dest: '{{host_log_dir}}'
+
+    - name: Remove local log dir
+      shell:
+        cmd: rm -rf '{{guest_log_dir.stdout}}'
+
+    - name: Check run case result
+      shell:
+        echo "Run test case failed"
+      failed_when: run_case_result is failed
+
+    - debug:
+        var: results_json.cancel
+
+    - name: Handle cancelled test cases
+      fail:
+        msg: "Test failed! There are unexpected cancelled test cases."
+      when: 
+        - results_json.cancel != 0 and not acc_cancel|bool 
