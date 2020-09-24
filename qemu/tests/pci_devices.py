@@ -75,9 +75,6 @@ def process_qtree(qtree):
                    'bus': node.parent.qtree.get('id'),
                    'addr': node.qtree.get('addr')}
             if dev_id is None:
-                # HOOK for VGA
-                if 'vga' in dev['type'].lower():
-                    dev['type'] = None
                 qtree_devices_noid.append(dev)
             else:
                 qtree_devices[dev_id] = dev
