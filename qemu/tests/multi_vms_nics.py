@@ -81,6 +81,10 @@ def run(test, params, env):
     def file_transfer(session, src, dst):
         username = params.get("username", "")
         password = params.get("password", "")
+        if dst == host_ip:
+            dst_password = params.get("hostpassword", "")
+        else:
+            dst_password = password
         src_path = "/tmp/1"
         dst_path = "/tmp/2"
         port = int(params["file_transfer_port"])
@@ -96,7 +100,7 @@ def run(test, params, env):
         log_filename = "scp-from-%s-to-%s.log" % (src, dst)
         error_context.context("Transfer file from %s to %s" % (src, dst),
                               logging.info)
-        remote.scp_between_remotes(src, dst, port, password, password,
+        remote.scp_between_remotes(src, dst, port, password, dst_password,
                                    username, username, src_path, dst_path,
                                    log_filename=log_filename,
                                    timeout=transfer_timeout)
@@ -105,7 +109,7 @@ def run(test, params, env):
         log_filename = "scp-from-%s-to-%s.log" % (dst, src)
         error_context.context("Transfer file from %s to %s" % (dst, src),
                               logging.info)
-        remote.scp_between_remotes(dst, src, port, password, password,
+        remote.scp_between_remotes(dst, src, port, dst_password, password,
                                    username, username, src_path, dst_path,
                                    log_filename=log_filename,
                                    timeout=transfer_timeout)
