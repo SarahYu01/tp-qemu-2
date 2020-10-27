@@ -92,7 +92,7 @@ class StorageVolume(object):
                 self._capacity = self.pool.get_size(self.key)
         if self._capacity is None:
             self._capacity = 0
-        return int(self._capacity)
+        return int(round(self._capacity))
 
     @capacity.setter
     def capacity(self, size):
