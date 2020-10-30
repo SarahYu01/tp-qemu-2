@@ -69,6 +69,7 @@ def run(test, params, env):
             if module and check_module:
                 error_context.context("Unload module %s" % module,
                                       logging.info)
+                time.sleep(20)
                 session.cmd("modprobe -r %s" % module)
                 time.sleep(1)
             error_context.context("Unplug virtio port '%s' in %d tune(s)" %
