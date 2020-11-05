@@ -65,6 +65,7 @@ class MemoryHotplugSimple(MemoryHotplugTest):
         devs = self.get_mem_by_name(vm, target_mem)
         if not devs and self.params.get("strict_check") != "yes":
             self.hotplug_memory(vm, target_mem)
+        time.sleep(1)
         return super(MemoryHotplugSimple, self).unplug_memory(vm, target_mem)
 
     def start_test(self):
