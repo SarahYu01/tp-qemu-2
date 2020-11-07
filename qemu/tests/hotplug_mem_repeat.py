@@ -1,3 +1,4 @@
+import time
 import logging
 
 from virttest import error_context
@@ -15,6 +16,7 @@ class MemoryHotplugRepeat(MemoryHotplugTest):
         """
         for target_mem in target_mems:
             self.hotplug_memory(vm, target_mem)
+            time.sleep(1)
         self.check_memory(vm)
 
     def repeat_unplug(self, vm, target_mems):
@@ -25,6 +27,7 @@ class MemoryHotplugRepeat(MemoryHotplugTest):
         """
         for target_mem in target_mems:
             self.unplug_memory(vm, target_mem)
+            time.sleep(1)
         self.check_memory(vm)
 
     def start_test(self):
