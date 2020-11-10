@@ -505,6 +505,7 @@ def run(test, params, env):
         if show_progress == "off":
             bg = utils_misc.InterruptedThread(send_signal)
             bg.start()
+        time.sleep(1)
         check_command_output(process.run(cmd))
 
     def rebase_test(cmd):
