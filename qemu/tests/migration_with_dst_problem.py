@@ -451,7 +451,8 @@ def run(test, params, env):
 
             self.vm_guest_params = params.copy()
             self.vm_guest_params["images_base_dir_image2_vm1"] = mount_path
-            self.vm_guest_params["image_name_image2_vm1"] = "ni_mount_%s/test" % (test_rand)
+            #self.vm_guest_params["image_name_image2_vm1"] = "ni_mount_%s/test" % (test_rand)
+            self.vm_guest_params["image_name_image2_vm1"] = mount_path + "/test"
             self.vm_guest_params["image_size_image2_vm1"] = self.disk_size
             self.vm_guest_params = self.vm_guest_params.object_params("vm1")
             self.image2_vm_guest_params = (self.vm_guest_params.
