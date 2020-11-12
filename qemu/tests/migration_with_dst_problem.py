@@ -374,8 +374,8 @@ def run(test, params, env):
                     "%s/disk_%s" %
                     (test.tmpdir, data_factory.generate_random_string(3)))
 
-            disk_size = int(utils_misc.normalize_data_size(
-                params.get("disk_size", "10M"), "M"))
+            disk_size = int(float(utils_misc.normalize_data_size(
+                params.get("disk_size", "10M"), "M")))
 
             exp_str = r".*gzip: stdout: No space left on device.*"
             vm_guest = env.get_vm("virt_test_vm1_guest")
@@ -437,8 +437,8 @@ def run(test, params, env):
             self.guest_mount_path = params.get("guest_disk_mount_path", "/mnt")
             self.copy_timeout = int(params.get("copy_timeout", "1024"))
 
-            self.copy_block_size = int(utils_misc.normalize_data_size(
-                params.get("copy_block_size", "100M"), "M"))
+            self.copy_block_size = int(float(utils_misc.normalize_data_size(
+                params.get("copy_block_size", "100M"), "M")))
             self.disk_size = "%sM" % int(self.copy_block_size * 1.4)
 
             self.server_recover_timeout = (
@@ -629,7 +629,7 @@ def run(test, params, env):
             self.isci_server = IscsiServer("tgt")
             disk_path = os.path.join(self.guest_mount_path, "disk1")
             self.isci_server.set_iscsi_server(vm_ds, disk_path,
-                                              (int(float(self.disk_size) * 1.1) / (1024 * 1024)))
+                                              (int(float(self.disk_size.split('M')[0]) * 1.1)))
             self.host_disk_path = self.isci_server.connect(vm_ds)
 
             process.run("mkfs.ext3 -F %s" % (self.host_disk_path))
