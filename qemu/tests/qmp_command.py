@@ -241,7 +241,8 @@ def run(test, params, env):
                 image_params = params.object_params(image)
                 image_format = image_params['image_format']
                 image_drive = "drive_%s" % image
-                image_info['device'] = image_drive
+                # image_info['device'] = image_drive
+                image_info['node-name'] = image_drive
                 image_info['qdev'] = image
                 image_info['format'] = image_format
                 expect_o.append(image_info)
@@ -249,6 +250,8 @@ def run(test, params, env):
             host_arch = platform.machine()
             if host_arch == "ppc64le":
                 host_arch = host_arch[:5]
+            if host_arch == "mips64":
+                host_arch = host_arch + "el"
             expect_o = [{"arch": host_arch}]
         check_result(qmp_o, expect_o)
     elif result_check.startswith("post_"):
