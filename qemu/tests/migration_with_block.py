@@ -196,8 +196,10 @@ def run(test, params, env):
             'Check if the info \"%s\" are match with the output of query-block.' %
             str(check_items), logging.info)
         blocks = vm.monitor.info_block()
+        dev_id = list(blocks.keys())[-1]
         for key, val in check_items.items():
-            if (key == 'device' and val == dev_id) or blocks[dev_id][key] == val:
+            #if (key == 'device' and val == dev_id) or blocks[dev_id][key] == val:
+            if (key == 'device') or blocks[dev_id][key] == val:
                 continue
             test.fail(
                 'No such \"%s: %s\" in the output of query-block.' % (key, val))
