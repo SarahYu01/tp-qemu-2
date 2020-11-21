@@ -111,8 +111,15 @@ def run(test, params, env):
     host_iperf_bin = iperf_compile(host_iperf_src_path, tmp_dir)
 
     if os_type == 'linux':
-        if not utils_package.package_install("gcc-c++", guest_session):
-            test.cancel("Please install gcc-c++ to proceed")
+        mgr = utils_package.package_manager(guest_session, "gcc")
+
+        if mgr.package_manager == "apt-get":
+            package = "g++"
+        else:
+            package = "gcc-c++"
+
+        if not utils_package.package_install(package, guest_session):
+            test.cancel("Please install %s to proceed" % package)
         guest_iperf__bin = iperf_compile(guest_iperf_src_path, tmp_dir, guest_session)
     else:
         guest_iperf__bin = guest_iperf_src_path
