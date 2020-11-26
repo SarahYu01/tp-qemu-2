@@ -30,7 +30,7 @@ def run(test, params, env):
                                                shell=True).decode()
         if not support_device:
             test.cancel("Can not get qemu support device list")
-        device_list = re.findall(r'name\s+"(.*)",', support_device)
+        device_list = re.findall(r'name\s+"([\w-]*)"', support_device)
         device_list_alias = re.findall(r'alias\s+"(.*?)"', support_device)
         device_list.extend(device_list_alias)
         return device_list
@@ -50,8 +50,7 @@ def run(test, params, env):
                                                       ignore_status=True,
                                                       shell=True)
         device_support_option = device_support_option.decode().strip()
-        if not re.findall(r"%s\.(.*)=(.*)" %
-                          device_name, device_support_option):
+        if device_name not in device_support_option:
             test.fail("Qemu option check Failed")
         logging.info("Qemu options check successful. output is:\n%s" %
                      device_support_option)
