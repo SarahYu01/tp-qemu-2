@@ -121,7 +121,11 @@ def run(test, params, env):
                     smbios_set_para = smbios_set_para.lower()
                     smbios_get_para = smbios_get_para.lower()
 
-                if (smbios_set_para not in smbios_get_para):
+                if smbios_set_para == "loongson7a":
+                    if smbios_get_para == ("Loongson-3A R4 (Loongson-3'%s'4000)" % ("A" or "B")):
+                        break
+
+                elif (smbios_set_para not in smbios_get_para):
                     e_msg = ("%s.%s mismatch, Set '%s' but guest is : '%s'"
                              % (sm_type, key, smbios_set_para,
                                 smbios_get_para))
