@@ -54,7 +54,7 @@ class QemuIOConfig(object):
                 # it with the raw file as quickly as possible
                 l_result = process.run("losetup -f")
                 process.run("losetup -f %s" % f)
-                loopback = l_result.stdout.strip()
+                loopback = l_result.stdout.decode("utf-8").strip()
                 self.loopback.append(loopback)
                 # Add the loopback device configured to the list of pvs
                 # recognized by LVM
@@ -79,11 +79,11 @@ class QemuIOConfig(object):
             time.sleep(2)
         l_result = process.run("lvdisplay")
         # Let's remove all volumes inside the volume group created
-        if self.lvtest_name in l_result.stdout:
+        if self.lvtest_name in l_result.stdout.decode("utf-8"):
             process.run("lvremove -f %s" % self.lvtest_device)
         # Now, removing the volume group itself
         v_result = process.run("vgdisplay")
-        if self.vgtest_name in v_result.stdout:
+        if self.vgtest_name in v_result.stdout.decode("utf-8"):
             process.run("vgremove -f %s" % self.vgtest_name)
         # Now, if we can, let's remove the physical volume from lvm list
         p_result = process.run("pvdisplay")
