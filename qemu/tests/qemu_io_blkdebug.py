@@ -103,7 +103,7 @@ def run(test, params, env):
                 image_io.snapshot_del(blkdebug_cfg=blkdebug_cfg)
                 output = ""
             except process.CmdError as err:
-                output = err.result.stderr
+                output = err.result.stderr.decode("utf-8")
 
         # Remove the snapshot and base image after a round of test
         image_io.remove()
