@@ -54,6 +54,13 @@ def run(test, params, env):
     logging.info("Compiling %s in guest..." % kvm_testcase_version)
     guest_session.cmd(compile_cmd)
 
+    hugepage = params.get("hugepage")
+    if hugepage == "yes":
+        hugepage_setup = params.get("hugepage_setup")
+        hugepage_verify = params.get("hugepage_verify")
+        guest_session.cmd(hugepage_setup)
+        guest_session.cmd(hugepage_verify)
+
     test_cmd = params.get("test_cmd")
     guest_session.cmd("cd %s; %s " % (kvm_testcase_source_path, test_cmd), timeout=3000)
 
