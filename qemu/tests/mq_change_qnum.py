@@ -3,6 +3,8 @@ import re
 
 import aexpect
 
+from avocado.utils import process
+
 from virttest import error_context
 from virttest import utils_net
 from virttest import utils_test
@@ -110,7 +112,7 @@ def run(test, params, env):
     enable_multi_queues(vm)
 
     session_serial = vm.wait_for_serial_login(timeout=login_timeout)
-    s_session = None
+    s_session = vm.wait_for_login(timeout=login_timeout)
     bg_ping = params.get("bg_ping")
     b_ping_lost_ratio = int(params.get("background_ping_package_lost_ratio", 5))
     f_ping_lost_ratio = int(params.get("final_ping_package_lost_ratio", 5))
@@ -167,9 +169,9 @@ def run(test, params, env):
                 error_context.context("Change queues number -- %sth"
                                       % repeat_num, logging.info)
                 try:
-                    queues_status = get_queues_status(session_serial, ifname)
+                    queues_status = get_queues_status(s_session, ifname)
                     for q_number in change_list:
-                        queues_status = change_queues_number(session_serial,
+                        queues_status = change_queues_number(s_session,
                                                              ifname,
                                                              int(q_number),
                                                              queues_status)
@@ -185,8 +187,9 @@ def run(test, params, env):
                                                              queues_status)
 
         if params.get("ping_after_changing_queues", "yes") == "yes":
-            default_host = "www.redhat.com"
-            ext_host = utils_net.get_default_gateway()
+            default_host = "www.loongson.cn"
+            ext_host_get_cmd = params.get("ext_host_get_cmd")
+            ext_host = process.system_output(ext_host_get_cmd, shell=True).decode("utf-8")
             if not ext_host:
                 # Fallback to a hardcode host, eg:
                 logging.warn("Can't get specified host,"
