@@ -80,6 +80,8 @@ def run(test, params, env):
     if vm.check_capability(Flags.BLOCKDEV):
         change_insert_cmd = ("blockdev-change-medium id=%s,filename=%s" %
                              (vm.devices.get_qdev_by_drive(device_name), orig_img_name))
+    monitor.blockdev_open_tray(vm.devices.get_qdev_by_drive(device_name), False)
+    time.sleep(2)
     monitor.send_args_cmd(change_insert_cmd)
     logging.info("Wait until device is ready")
     exists = utils_misc.wait_for(lambda: (orig_img_name in
