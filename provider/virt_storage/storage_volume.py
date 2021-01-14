@@ -96,9 +96,9 @@ class StorageVolume(object):
 
     @capacity.setter
     def capacity(self, size):
-        self._capacity = float(
+        self._capacity = int(round(float(
             utils_misc.normalize_data_size(
-                str(size), 'B', '1024'))
+                str(size), 'B', '1024'))))
 
     @property
     def auth(self):
