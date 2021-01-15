@@ -36,9 +36,10 @@ class BlockdevSnapshotChainsTest(BlockDevSnapshotTest):
         arguments = self.params.copy_from_keys(options)
         for snapshot_tag in self.snapshot_chains:
             overlay = "drive_%s" % snapshot_tag
+            node = "file_%s" % snapshot_tag
             arguments.update({"overlay": overlay})
+            arguments.update({"node": node})
             self.main_vm.monitor.cmd(cmd, dict(arguments))
-            arguments["node"] = arguments["overlay"]
 
     def prepare_clone_vm(self):
         vm_params = self.params.copy()
