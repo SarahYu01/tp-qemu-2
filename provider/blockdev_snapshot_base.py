@@ -97,6 +97,7 @@ class BlockDevSnapshotTest(object):
             arguments["snapshot-file"] = self.snapshot_image.image_filename
         else:
             arguments.setdefault("overlay", "drive_%s" % self.snapshot_tag)
+            arguments.setdefault("node", "file_%s" % self.snapshot_tag)
         return self.main_vm.monitor.cmd(cmd, dict(arguments))
 
     @staticmethod
