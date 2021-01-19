@@ -1,5 +1,6 @@
 import re
 import logging
+import time
 
 from avocado.utils import process
 
@@ -12,10 +13,10 @@ def get_macvtap_device_on_ifname(ifname):
     macvtaps = []
     ip_link_out = process.system_output("ip -d link show")
     re_str = r"(\S*)@%s" % ifname
-    devices = re.findall(re_str, ip_link_out)
+    devices = re.findall(re_str, ip_link_out.decode())
     for device in devices:
         out = process.system_output("ip -d link show %s" % device)
-        if "macvtap  mode" in out:
+        if "macvtap  mode" in out.decode():
             macvtaps.append(device)
     return macvtaps
 
@@ -37,7 +38,12 @@ def run(test, params, env):
     :param env: Dictionary with test environment.
     """
 
+    # set board's ifname customly
+    #ifname = params.get("macvtap_base_interface", "enp5s0f1")
+
+    # get board's ifname automatically.
     ifname = params.get("macvtap_base_interface")
+
     macvtap_mode = params.get("macvtap_mode", "passthru")
     dest_host = params.get("dest_host")
     set_mac = params.get("set_mac", "yes") == "yes"
@@ -80,7 +86,7 @@ def run(test, params, env):
             err = "Fail to create %s mode macvtap on %s" % (mode, ifname)
             test.fail(err)
         if set_mac:
-            if mac not in tap_info:
+            if mac not in tap_info.decode():
                 err = "Fail to set mac for %s" % macvtap_name
                 test.fail(err)
         macvtaps.append(macvtap_name)
@@ -90,7 +96,7 @@ def run(test, params, env):
         dest_host_get_cmd = params.get("dest_host_get_cmd", dest_host_get_cmd)
         dest_host = process.system_output(
             dest_host_get_cmd, shell=True).split()[-1]
-
+    dest_host = dest_host.decode()
     txt = "Ping dest host %s from " % dest_host
     txt += "localhost with the interface %s" % ifname
     error_context.context(txt, logging.info)
@@ -137,6 +143,7 @@ def run(test, params, env):
     logging.info("dest_host = %s", dest_host)
     txt = "Ping dest host %s from " % dest_host
     txt += "localhost with the interface %s" % ifname
+    time.sleep(5)
     error_context.context(txt, logging.info)
     status, output = utils_test.ping(dest_host, 10,
                                      interface=ifname, timeout=20)
