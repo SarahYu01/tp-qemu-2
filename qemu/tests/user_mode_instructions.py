@@ -38,8 +38,20 @@ def run(test, params, env):
     kvm_testcase_path = params.get('kvm_testcase_path', tmp_dir)
     kvm_testcase_src_path = os.path.join(kvm_testcase_path, kvm_testcase_file)
 
+    # Get host cpuinfo
+    cmd = "cat /proc/cpuinfo | grep processor | wc -l"
+    error_context.context("Get cpuinfo by command '%s'"
+                          % cmd, logging.info)
+    status, output = utils_misc.cmd_status_output(cmd, shell=True)
+    vcpu_count = output
+
+    # create vm
     vm = env.get_vm(params["main_vm"])
+    params["smp"] = vcpu_count
+
+    vm.create(params=params)
     vm.verify_alive()
+
     serial_session = vm.wait_for_serial_login(timeout=login_timeout)
     guest_session = vm.wait_for_login(timeout=login_timeout)
 
