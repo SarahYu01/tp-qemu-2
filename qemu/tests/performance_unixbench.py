@@ -137,7 +137,7 @@ def run(test, params, env):
 
     # run unixbench test
     test_cmd = params.get("test_cmd")
-    status, output = session.cmd_status_output("cd %s; %s " % (unixbench_source_path, test_cmd), timeout=3000)
+    status, output = session.cmd_status_output("cd %s; %s " % (unixbench_source_path, test_cmd), timeout=4500)
     if status != 0:
         test.fail("Failed to run unixbench with error: %s" % output)
     logging.debug(output)
