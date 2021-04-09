@@ -95,7 +95,7 @@ def run(test, params, env):
             s_info["shell_port"] = params.get("shell_port_%s" % server,
                                               "22")
             s_info["shell_prompt"] = params.get("shell_prompt_%s" % server,
-                                                r"^\[.*\][\#\$]\s*$")
+                                                r"^\[.*\][\#\$]\s*$|^.*@.*\:")
             s_info["linesep"] = params.get("linesep_%s" % server,
                                            "\n")
             s_info["status_test_command"] = params.get("status_test_command_%s" % server,
@@ -148,7 +148,7 @@ def run(test, params, env):
             c_info["shell_port"] = params.get("shell_port_%s" % client,
                                               "23")
             c_info["shell_prompt"] = params.get("shell_prompt_%s" % client,
-                                                r"^\[.*\][\#\$]\s*$")
+                                                r"^\[.*\][\#\$]\s*$|^.*@.*\:")
             c_info["linesep"] = params.get("linesep_%s" % client,
                                            "\n")
             c_info["status_test_command"] = params.get("status_test_command_%s" % client,
