@@ -29,7 +29,7 @@ def run(test, params, env):
     netperf_client = params.get("netperf_client").split()
     guest_username = params.get("username", "")
     guest_password = params.get("password", "")
-    host_password = params.get("hostpassword", "redhat")
+    host_password = params.get("hostpassword", "loongson")
     shell_client = params.get("shell_client")
     shell_port = params.get("shell_port")
     os_type = params.get("os_type")
@@ -86,7 +86,7 @@ def run(test, params, env):
             else:
                 s_info["ip"] = server
                 s_info["password"] = params.get("password_%s" % server,
-                                                "redhat")
+                                                "loongson")
             s_info["os_type"] = params.get("os_type_%s" % server, "linux")
             s_info["username"] = params.get("username_%s" % server,
                                             "root")
@@ -139,7 +139,7 @@ def run(test, params, env):
             else:
                 c_info["ip"] = client
                 c_info["password"] = params.get("password_%s" % client,
-                                                "redhat")
+                                                "loongson")
             c_info["os_type"] = params.get("os_type_%s" % client, "linux")
             c_info["username"] = params.get("username_%s" % client,
                                             "root")

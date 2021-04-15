@@ -112,7 +112,7 @@ def run(test, params, env):
         error_context.context(txt, logging.info)
         host_result = crypto.hash_file(name, algorithm="md5")
         try:
-            output = session.cmd_output("md5sum %s" % name).split()[0]
+            output = session.cmd_output("md5sum %s" % name, timeout=240).split()[0]
             guest_result = re.findall(r"\w+", output)[0]
         except IndexError:
             logging.error("Could not get file md5sum in guest")
