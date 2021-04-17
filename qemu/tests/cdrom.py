@@ -149,8 +149,9 @@ def run(test, params, env):
             file_name = utils_misc.get_path(iso_image_dir, "%s.iso" % name)
         if prepare:
             cmd = "dd if=/dev/urandom of=%s bs=1M count=%d"
+            mkisocmd = params.get("mkisocmd")
             process.run(cmd % (name, file_size))
-            process.run("mkisofs -o %s %s" % (file_name, name))
+            process.run(mkisocmd % (file_name, name))
             process.run("rm -rf %s" % (name))
         if image_params.get("enable_gluster") == "yes":
             gluster_uri = gluster.create_gluster_uri(image_params)

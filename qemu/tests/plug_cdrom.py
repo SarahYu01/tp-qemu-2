@@ -1,6 +1,7 @@
 import ast
 import logging
 import re
+import time
 
 from virttest import error_context
 from virttest import utils_test
@@ -79,6 +80,7 @@ def run(test, params, env):
 
     def _check_cdrom_info(items):
         _check_cdrom_info_by_qmp(items)
+        time.sleep(1)
         _check_cdrom_info_by_guest()
 
     os_type = params['os_type']
