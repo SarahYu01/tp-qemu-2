@@ -52,7 +52,7 @@ def run(test, params, env):
     vm.create(params=params)
     vm.verify_alive()
 
-    serial_session = vm.wait_for_serial_login(timeout=login_timeout)
+    #serial_session = vm.wait_for_serial_login(timeout=login_timeout)
     guest_session = vm.wait_for_login(timeout=login_timeout)
 
     vm.copy_files_to(kvm_testcase_remote_path, kvm_testcase_path)
@@ -78,4 +78,4 @@ def run(test, params, env):
 
 
     guest_session.close()
-    serial_session.close()
+    #serial_session.close()
