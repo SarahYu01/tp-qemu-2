@@ -198,7 +198,7 @@ def run(test, params, env):
         quit_cmd = params.get("quit_cmd", "exit")
         if host == host_ip:
             # Try to login from guest to host.
-            prompt = r"^\[.*\][\#\$]\s*$"
+            prompt = r"^\[.*\][\#\$]\s*$|^.*@.*\:"
             linesep = "\n"
             username = params_login["host_username"]
             password = params_login["host_password"]
