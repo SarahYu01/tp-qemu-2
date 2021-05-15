@@ -188,8 +188,7 @@ def run(test, params, env):
 
         if params.get("ping_after_changing_queues", "yes") == "yes":
             default_host = "www.loongson.cn"
-            ext_host_get_cmd = params.get("ext_host_get_cmd")
-            ext_host = process.system_output(ext_host_get_cmd, shell=True).decode("utf-8")
+            ext_host = utils_net.get_default_gateway()
             if not ext_host:
                 # Fallback to a hardcode host, eg:
                 logging.warn("Can't get specified host,"
