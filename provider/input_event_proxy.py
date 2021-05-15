@@ -201,8 +201,8 @@ class EventListenerLinux(_EventListener):
     WHEELBACKWARD = 0xffffffff
 
     def __init__(self, vm):
-        super(EventListenerLinux, self).__init__(vm)
         self._buffers = {}
+        super(EventListenerLinux, self).__init__(vm)
 
     def _uninstall(self):
         cmd = ' '.join(('rm', '-f', self.agent_target))

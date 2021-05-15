@@ -193,50 +193,76 @@ def mouse_move_test(test, params, console, listener,
                           logging.info)
     while not events_queue.empty():
         event = events_queue.get()
-        xpos, ypos = event["xPos"], event["yPos"]
+        if 'xPos' in event:
+            xpos = event['xPos']
+        else:
+            xpos = 0
+        if 'yPos' in event:
+            ypos = event['yPos']
+        else:
+            ypos = 0
+        if absolute:
+            xpos = xpos * width / 32767
+            ypos = ypos * height / 32767
         # Filter beyond screen size events.
         # Due to os will ignores/corrects these events.
-        if 0 <= xpos <= width and 0 <= ypos <= height:
-            event_lst.append((event["xPos"], event["yPos"]))
+        if 0 <= abs(xpos) <= width and 0 <= abs(ypos) <= height:
+            event_lst.append((xpos, ypos))
 
-    xn_guest, yn_guest = event_lst[-1]
     tolerance = int(params.get("tolerance"))
-    error_context.context("Compare if pointer move to destination pos (%s, %s)"
-                          "the missed value should in tolerance scope."
-                          % end_pos, logging.info)
-    if (abs(xn - xn_guest) > tolerance) or (abs(yn - yn_guest) > tolerance):
-        test.fail("pointer did not move to destination position."
-                  "it move to pos (%s, %s) in guest, but exepected pos is"
-                  "(%s, %s)" % (xn_guest, yn_guest, xn, yn))
 
     error_context.context("Compare if pointer move trace nearby destination line,"
                           "the missed value should in tolerance scope.",
                           logging.info)
-
+    xd, yd = 0, 0
     for i, (x, y) in enumerate(event_lst):
-        if not vertical:
-            if abs((k * x + b) - y) > tolerance:
-                test.fail("Received pointer pos beyond line's tolerance scope "
-                          "when move from {0} to {1}. Received pos is ({2}, {3}),"
-                          "it didn't nearby the expected line "
-                          "y={4}x+{5}.".format(start_pos, end_pos, x, y, k, b))
-            elif k == 0:
-                # for horizontal direction line, only x value will change.
-                if i > 0:
-                    dx = [x2 - x1 for x1, x2 in zip(event_lst[i-1], event_lst[i])][0]
-                    if (xn - x0 > 0 and dx <= 0):
+        if not absolute:
+            if not vertical:
+                if k != 0:
+                    xd += x
+                    yd += y
+                    if abs((k * xd + b) - yd) > tolerance:
+                        test.fail("Received pointer pos beyond line's tolerance scope "
+                                  "when move from {0} to {1}. Received pos is ({2}, {3}),"
+                                  "it didn't nearby the expected line "
+                                  "y={4}x+{5}.".format(start_pos, end_pos, x, y, k, b))
+                elif k == 0:
+                    # for horizontal direction line, only x value will change.
+                    if (xn - x0 > 0 and x <= 0):
                         test.fail("pointer move direction is wrong when "
                                   "move from {0} to {1}.".format(start_pos, end_pos))
-                    elif (xn - x0 < 0 and dx >= 0):
+                    elif (xn - x0 < 0 and x >= 0):
                         test.fail("pointer move direction is wrong when "
                                   "move from {0} to {1}.".format(start_pos, end_pos))
-        else:
-            # for vertical direction line, only y value will change.
-            if i > 0:
-                dy = [y2 - y1 for y1, y2 in zip(event_lst[i-1], event_lst[i])][1]
-                if (yn - y0 > 0 and dy <= 0) or (yn - y0 < 0 and dy >= 0):
+            else:
+                # for vertical direction line, only y value will change.
+                if (yn - y0 > 0 and y <= 0) or (yn - y0 < 0 and y >= 0):
                     test.fail("pointer move to incorrect direction when "
                               "move from {0} to {1}.".format(start_pos, end_pos))
+        else:
+            if not vertical:
+                if k != 0:
+                    if abs((k * x + b) - y) > tolerance:
+                        test.fail("Received pointer pos beyond line's tolerance scope "
+                                  "when move from {0} to {1}. Received pos is ({2}, {3}),"
+                                  "it didn't nearby the expected line "
+                                  "y={4}x+{5}.".format(start_pos, end_pos, x, y, k, b))
+                    # for horizontal direction line, only x value will change.
+                    if i > 0:
+                        dx = [x2 - x1 for x1, x2 in zip(event_lst[i-1], event_lst[i])][0]
+                        if (xn - x0 > 0 and dx <= 0):
+                            test.fail("pointer move direction is wrong when "
+                                      "move from {0} to {1}.".format(start_pos, end_pos))
+                        elif (xn - x0 < 0 and dx >= 0):
+                            test.fail("pointer move direction is wrong when "
+                                      "move from {0} to {1}.".format(start_pos, end_pos))
+            else:
+                # for vertical direction line, only y value will change.
+                if i > 0:
+                    dy = [y2 - y1 for y1, y2 in zip(event_lst[i-1], event_lst[i])][1]
+                    if (yn - y0 > 0 and dy <= 0) or (yn - y0 < 0 and dy >= 0):
+                        test.fail("pointer move to incorrect direction when "
+                                  "move from {0} to {1}.".format(start_pos, end_pos))
 
 
 def query_mice_status(vm, mice_name):
