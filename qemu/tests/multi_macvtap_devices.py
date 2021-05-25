@@ -78,6 +78,11 @@ def run(test, params, env):
                      " Fallback to default host '%s'",
                      ext_host_get_cmd, default_host)
         ext_host = default_host
+
+    # decode if need
+    if "bytes" in str(type(ext_host)):
+        ext_host = ext_host.decode("utf-8")
+
     try:
         txt = "Create and up %s macvtap devices in setting mode." % macvtap_num
         error_context.context(txt, logging.info)
@@ -99,7 +104,7 @@ def run(test, params, env):
             vm = env.get_vm(vm_name)
             vm.verify_alive()
             session = vm.wait_for_serial_login(timeout=timeout)
-            if wait_guest_network_up(test, session, ext_host, timeout=timeout):
+            if wait_guest_network_up(test, session, ext_host, timeout=30):
                 txt = " Ping from guests to %s for %s counts." % (ext_host,
                                                                   ping_count)
                 error_context.context(txt, logging.info)

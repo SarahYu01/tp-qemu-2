@@ -31,8 +31,8 @@ def run(test, params, env):
     if not utils_misc.qemu_has_option("qmp", qemu_binary):
         test.cancel("This test case requires a host QEMU with QMP "
                     "monitor support")
-    if params.get("nettype", "macvtap") != "macvtap":
-        test.cancel("This test case test macvtap.")
+#    if params.get("nettype", "macvtap") != "macvtap":
+#        test.cancel("This test case test macvtap.")
 
     params["start_vm"] = "yes"
     vm_name = params.get("main_vm", "vm1")
