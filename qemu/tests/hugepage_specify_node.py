@@ -82,4 +82,5 @@ def run(test, params, env):
                               "Expect: node%s, used: node%s." % (node_id, index))
         finally:
             vm.destroy()
-            hp_config.cleanup()
+            #hp_config.cleanup()
+            test_setup.HugePageConfig(params).cleanup()
