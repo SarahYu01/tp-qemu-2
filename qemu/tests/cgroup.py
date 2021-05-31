@@ -452,7 +452,7 @@ def run(test, params, env):
             """
             # Test
             # can't set bs for scsi_debug, default is 512b
-            dd_cmd = get_dd_cmd(direction, count=3)
+            dd_cmd = get_dd_cmd(direction, count=100)
             limit = float(params.get('cgroup_limit_%s' % direction,
                                      params.get('cgroup_limit', 0.1)))
             # every scenario have list of results [[][][]]
