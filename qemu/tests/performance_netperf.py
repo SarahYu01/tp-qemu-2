@@ -98,6 +98,7 @@ def run(test, params, env):
         test.fail("Failed to get server password")
 
     s_info["shell_prompt"] = params.get("shell_prompt", r"^\[.*\][\#\$]\s*$|^.*@.*\:")
+    s_info["shell_prompt"] = r"^\[.*\][\#\$]\s*$|^.*@.*\:"
     s_info["linesep"] = params.get("linesep", "\n")
     s_info["status_test_command"] = params.get("status_test_command", "echo $?")
     server_path = params.get("server_path")
