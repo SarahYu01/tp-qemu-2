@@ -22,7 +22,7 @@ def run(test, params, env):
     machine_types = []
     machine_type_mapping = {"pc": ["i440FX", "RHEL 6"], "q35": ["Q35"], "pseries": ["pSeries"],
                             "arm64-pci:virt": ["ARM"], "arm64-mmio:virt": ["ARM"], "s390-ccw-virtio": ["S390"],
-                            "loongson7a": ["Loongson3a4000 LS7A1000 machine V1.0"]}
+                            "loongson7a": ["Loongson3a4000", "Loongarch3a5k"]}
     for m_type, s_name in zip(*utils_misc.get_support_machine_type(qemu_binary)[:2]):
         for item in machine_type_mapping[params["machine_type"]]:
             if item in s_name:
