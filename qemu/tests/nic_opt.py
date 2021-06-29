@@ -40,7 +40,7 @@ def run(test, params, env):
                                                params.get("server_path", "/var/tmp"),
                                                netperf_source=os.path.join(data_dir.get_deps_dir("netperf"),
                                                                            params.get("netperf_server_link")),
-                                               password=params.get("hostpassword"),
+                                               password=params.get("hostpassword"), prompt=params.get("shell_prompt"),
                                                compile_option=params.get("compile_option", ""))
 
         try:
