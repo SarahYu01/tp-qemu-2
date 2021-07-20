@@ -44,6 +44,7 @@ def run(test, params, env):
                           % cmd, logging.info)
     status, output = utils_misc.cmd_status_output(cmd, shell=True)
     vcpu_count = output
+    vcpu_count = 2
 
     # create vm
     vm = env.get_vm(params["main_vm"])
@@ -66,10 +67,9 @@ def run(test, params, env):
     logging.info("Compiling %s in guest..." % kvm_testcase_version)
     guest_session.cmd(compile_cmd)
 
-    hugepage = params.get("hugepage")
-    if hugepage == "yes":
-        hugepage_setup = params.get("hugepage_setup")
-        hugepage_verify = params.get("hugepage_verify")
+    hugepage_setup = params.get("hugepage_setup")
+    hugepage_verify = params.get("hugepage_verify")
+    if hugepage_setup is not None and  hugepage_verify is not None:
         guest_session.cmd(hugepage_setup)
         guest_session.cmd(hugepage_verify)
 
