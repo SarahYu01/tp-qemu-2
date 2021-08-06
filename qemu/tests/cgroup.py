@@ -388,6 +388,7 @@ def run(test, params, env):
             for session in sessions:
                 # try whether all sessions are clean
                 session.cmd("true")
+                time.sleep(1)
                 session.close()
 
             del(blkio)
